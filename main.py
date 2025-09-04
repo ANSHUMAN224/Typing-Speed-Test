@@ -3,20 +3,21 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
 from pathlib import Path
 import random
+import os
 
 app = FastAPI()
 
 # Allow frontend requests (CORS)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # replace "*" with your deployed frontend URL later
+    allow_origins=["*"],  # replace "*" with your frontend URL after deployment
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Path to text.txt relative to this file
-BASE_DIR = Path(__file__).resolve().parent
+# Path to text.txt
+BASE_DIR = Path(__file__).parent
 TEXT_FILE = BASE_DIR / "text.txt"
 
 @app.get("/text", response_class=PlainTextResponse)
@@ -25,7 +26,8 @@ def get_text():
     if not TEXT_FILE.exists():
         return "Error: text.txt not found"
     
-    lines = [line.strip() for line in TEXT_FILE.read_text(encoding="utf-8").splitlines() if line.strip()]
+    lines = TEXT_FILE.read_text(encoding="utf-8").splitlines()
+    lines = [line.strip() for line in lines if line.strip()]
     
     return random.choice(lines) if lines else "Error: no text available"
 
