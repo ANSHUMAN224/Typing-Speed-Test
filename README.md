@@ -1,2 +1,0 @@
-# Typing-Speed-Test
-WPM
