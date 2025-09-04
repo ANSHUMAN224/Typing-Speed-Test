@@ -16,7 +16,8 @@ app.add_middleware(
 )
 
 # Path to text.txt
-TEXT_FILE = Path(__file__).parent / "text.txt"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+TEXT_FILE = os.path.join(BASE_DIR, "text.txt")
 
 @app.get("/text", response_class=PlainTextResponse)
 def get_text():
