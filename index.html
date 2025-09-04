@@ -107,7 +107,7 @@
   </div>
 
   <script>
-    const BACKEND_URL = "https://typingspeed-test.onrender.com";
+    const BACKEND_URL = "https://typingspeed-test.onrender.com"; // updated backend URL
     let targetText = "";
     let startTime = null;
     let timerInterval = null;
@@ -122,100 +122,98 @@
     const timerBadge = document.querySelector(".timer-badge");
 
     async function newTest() {
-      const res = await fetch(`${BACKEND_URL}/text`);
-      targetText = await res.text();
+        const res = await fetch(`${BACKEND_URL}/text`);
+        targetText = await res.text();
 
-      renderTargetText("");
-      inputArea.value = "";
-      inputArea.disabled = false;
-      inputArea.focus();
+        targetDiv.textContent = targetText;
+        inputArea.value = "";
+        inputArea.disabled = false;
+        inputArea.focus();
 
-      wpmSpan.textContent = "0";
-      accuracySpan.textContent = "0%"; // stays 0 until finished
-      timerSpan.textContent = "60";
+        wpmSpan.textContent = "0";
+        accuracySpan.textContent = "0%";
+        timerSpan.textContent = "60";
 
-      finished = false;
-      startTime = null;
-      timeLeft = 60;
+        finished = false;
+        startTime = null;
+        timeLeft = 60;
 
-      if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-      }
-
-      // reset timer badge color
-      timerBadge.style.background = "#38bdf8";
-    }
-
-    function renderTargetText(userText) {
-      const html = targetText.split("").map((ch, i) => {
-        if (i < userText.length) {
-          return `<span class="${ch === userText[i] ? "correct" : "incorrect"}">${ch}</span>`;
-        } else {
-          return ch;
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
         }
-      }).join("");
-      targetDiv.innerHTML = html;
+
+        timerBadge.style.background = "#38bdf8";
     }
 
     function updateTimer() {
-      if (finished) return;
-      if (timeLeft > 0) {
-        timeLeft--;
-        timerSpan.textContent = timeLeft;
+        if (finished) return;
+        if (timeLeft > 0) {
+            timeLeft--;
+            timerSpan.textContent = timeLeft;
 
-        // warning colors
-        if (timeLeft <= 5) {
-          timerBadge.style.background = "#ef4444"; // red
-        } else if (timeLeft <= 10) {
-          timerBadge.style.background = "#f59e0b"; // orange
+            if (timeLeft <= 5) {
+                timerBadge.style.background = "#ef4444";
+            } else if (timeLeft <= 10) {
+                timerBadge.style.background = "#f59e0b";
+            }
+        } else {
+            finishTest(true);
         }
-      } else {
-        finishTest(true);
-      }
     }
 
     inputArea.addEventListener("input", () => {
-      if (!startTime) {
-        startTime = new Date();
-        // start timer only when typing begins
-        timerInterval = setInterval(updateTimer, 1000);
-      }
-      if (finished) return;
+        if (!startTime) {
+            startTime = new Date();
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+        if (finished) return;
 
-      const currentText = inputArea.value;
-      renderTargetText(currentText);
+        const currentText = inputArea.value;
+        // highlight correct/incorrect characters
+        let displayText = "";
+        for (let i = 0; i < targetText.length; i++) {
+            if (i < currentText.length) {
+                displayText += currentText[i] === targetText[i]
+                    ? `<span style="color: #22c55e">${targetText[i]}</span>`
+                    : `<span style="color: #ef4444">${targetText[i]}</span>`;
+            } else {
+                displayText += targetText[i];
+            }
+        }
+        targetDiv.innerHTML = displayText;
 
-      if (currentText === targetText) {
-        finishTest(false);
-      }
+        if (currentText === targetText) {
+            finishTest(false);
+        }
     });
 
     function finishTest(timeout) {
-      finished = true;
-      clearInterval(timerInterval);
-      inputArea.disabled = true;
+        finished = true;
+        clearInterval(timerInterval);
+        inputArea.disabled = true;
 
-      const typedText = inputArea.value;
-      const correctChars = typedText
-        .split("")
-        .filter((ch, i) => ch === targetText[i]).length;
-      const accuracy =
-        typedText.length > 0
-          ? Math.round((correctChars / typedText.length) * 100)
-          : 0;
+        const typedText = inputArea.value;
+        const correctChars = typedText
+            .split("")
+            .filter((ch, i) => ch === targetText[i]).length;
+        const accuracy =
+            typedText.length > 0
+                ? Math.round((correctChars / typedText.length) * 100)
+                : 0;
 
-      let wpmResult = 0;
-      if (timeout) {
-        wpmResult = "Too Slow";
-      } else {
-        const timeTaken = (new Date() - startTime) / 1000 / 60; // minutes
-        wpmResult = Math.round(typedText.length / 5 / timeTaken);
-      }
+        let wpmResult = 0;
+        if (timeout) {
+            wpmResult = "Too Slow";
+        } else {
+            const timeTaken = (new Date() - startTime) / 1000 / 60; // minutes
+            wpmResult = Math.round(typedText.length / 5 / timeTaken);
+        }
 
-      wpmSpan.textContent = wpmResult;
-      accuracySpan.textContent = accuracy + "%";
+        wpmSpan.textContent = wpmResult;
+        accuracySpan.textContent = accuracy + "%";
     }
-  </script>
+</script>
+
 </body>
 </html>
