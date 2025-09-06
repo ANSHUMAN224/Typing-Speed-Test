@@ -14,6 +14,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      overflow: hidden;
     }
     .container {
       width: 95%;
@@ -24,6 +25,7 @@
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
       text-align: center;
       position: relative;
+      z-index: 2;
     }
 
     h1 {
@@ -139,6 +141,33 @@
     .incorrect {
       color: #ef4444;
     }
+
+    /* Floating letters background */
+    .floating {
+      position: absolute;
+      top: 100%;
+      font-size: 24px;
+      opacity: 0.3;
+      animation: floatUp linear infinite;
+      color: #38bdf8;
+      z-index: 1;
+    }
+    @keyframes floatUp {
+      0% { transform: translateY(0) rotate(0); opacity: 0.3; }
+      100% { transform: translateY(-120vh) rotate(360deg); opacity: 0; }
+    }
+
+    /* Floating result icon */
+    .floating-result {
+      position: absolute;
+      font-size: 50px;
+      animation: floatResult 3s ease-out forwards;
+      z-index: 3;
+    }
+    @keyframes floatResult {
+      0% { transform: translateY(0) scale(0.5); opacity: 1; }
+      100% { transform: translateY(-150px) scale(1.5); opacity: 0; }
+    }
   </style>
 </head>
 <body>
@@ -179,6 +208,18 @@
     const accuracySpan = document.getElementById("accuracy");
     const timerSpan = document.getElementById("timer");
     const progressFill = document.querySelector(".progress-fill");
+
+    // Floating letters
+    function createFloatingLetter() {
+      const letter = document.createElement("div");
+      letter.classList.add("floating");
+      letter.textContent = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+      letter.style.left = Math.random() * 100 + "vw";
+      letter.style.animationDuration = (5 + Math.random() * 5) + "s";
+      document.body.appendChild(letter);
+      setTimeout(() => letter.remove(), 10000);
+    }
+    setInterval(createFloatingLetter, 1000);
 
     async function newTest() {
       const res = await fetch(`${BACKEND_URL}/text`);
@@ -254,10 +295,23 @@
       inputArea.addEventListener(evt, (e) => e.preventDefault());
     });
     inputArea.addEventListener("keydown", (e) => {
-      if ((e.ctrlKey || e.metaKey) && (e.key === "v" || e.key === "V")) {
+      if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === "v")) {
         e.preventDefault();
       }
     });
+
+    // Floating ✅ or ❌
+    function showFloatingResult(symbol, color) {
+      const result = document.createElement("div");
+      result.classList.add("floating-result");
+      result.textContent = symbol;
+      result.style.left = "50%";
+      result.style.top = "50%";
+      result.style.color = color;
+      result.style.transform = "translate(-50%, -50%)";
+      document.body.appendChild(result);
+      setTimeout(() => result.remove(), 3000);
+    }
 
     function finishTest(timeout) {
       finished = true;
@@ -278,12 +332,15 @@
         const progress = typedText.length / targetText.length;
         if (progress >= 0.5) {
           wpmResult = "Try Harder ❗";
+          showFloatingResult("❌", "#ef4444");
         } else {
           wpmResult = "Too Slow ❌";
+          showFloatingResult("❌", "#ef4444");
         }
       } else {
         const timeTaken = (new Date() - startTime) / 1000 / 60;
         wpmResult = Math.round(typedText.length / 5 / timeTaken) + " ✅";
+        showFloatingResult("✅", "#22c55e");
       }
 
       wpmSpan.textContent = wpmResult;
