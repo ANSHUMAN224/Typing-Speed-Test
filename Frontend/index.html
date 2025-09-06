@@ -221,7 +221,7 @@
     function createFloatingLetter() {
       const letter = document.createElement("div");
       letter.classList.add("floating");
-      letter.textContent = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+      letter.textContent = String.fromCharCode(33 + Math.floor(Math.random() * 94));
 
       // Random horizontal position
       letter.style.left = Math.random() * 100 + "vw";
