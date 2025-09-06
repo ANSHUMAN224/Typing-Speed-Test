@@ -37,17 +37,24 @@
       gap: 8px;
     }
 
-    /* Custom tooltip */
+    /* Styled info button */
     .info-btn {
       position: relative;
-      cursor: pointer;
-      font-size: 20px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #38bdf8;
+      color: #0f172a;
+      font-size: 14px;
       font-weight: bold;
-      color: #38bdf8;
-      transition: color 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.3s;
     }
     .info-btn:hover {
-      color: #0ea5e9;
+      background: #0ea5e9;
     }
     .info-btn .tooltip {
       visibility: hidden;
@@ -75,7 +82,7 @@
 
     .progress-bar {
       width: 100%;
-      height: 28px;
+      height: 32px;
       background: #334155;
       border-radius: 12px;
       overflow: hidden;
@@ -92,6 +99,7 @@
       justify-content: center;
       font-weight: bold;
       color: #0f172a;
+      font-size: 16px;
     }
 
     #target {
@@ -146,14 +154,14 @@
     .floating {
       position: absolute;
       top: 100%;
-      font-size: 24px;
-      opacity: 0.3;
+      font-weight: bold;
+      opacity: 0.5;
       animation: floatUp linear infinite;
-      color: #38bdf8;
       z-index: 1;
+      text-shadow: 0 0 8px rgba(255,255,255,0.4);
     }
     @keyframes floatUp {
-      0% { transform: translateY(0) rotate(0); opacity: 0.3; }
+      0% { transform: translateY(0) rotate(0); opacity: 0.5; }
       100% { transform: translateY(-120vh) rotate(360deg); opacity: 0; }
     }
 
@@ -174,7 +182,7 @@
   <div class="container">
     <h1>
       Typing Speed Test
-      <span class="info-btn">ℹ️
+      <span class="info-btn">i
         <span class="tooltip">Type the exact paragraph displayed below in the text box</span>
       </span>
     </h1>
@@ -214,12 +222,25 @@
       const letter = document.createElement("div");
       letter.classList.add("floating");
       letter.textContent = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+
+      // Random horizontal position
       letter.style.left = Math.random() * 100 + "vw";
-      letter.style.animationDuration = (5 + Math.random() * 5) + "s";
+
+      // Random size
+      const size = 16 + Math.random() * 32;
+      letter.style.fontSize = size + "px";
+
+      // Random color
+      const colors = ["#38bdf8", "#22c55e", "#facc15", "#ef4444", "#a855f7", "#fb923c"];
+      letter.style.color = colors[Math.floor(Math.random() * colors.length)];
+
+      // Random animation duration
+      letter.style.animationDuration = (4 + Math.random() * 6) + "s";
+
       document.body.appendChild(letter);
-      setTimeout(() => letter.remove(), 10000);
+      setTimeout(() => letter.remove(), 12000);
     }
-    setInterval(createFloatingLetter, 1000);
+    setInterval(createFloatingLetter, 800);
 
     async function newTest() {
       const res = await fetch(`${BACKEND_URL}/text`);
@@ -290,7 +311,7 @@
       }
     });
 
-    // Disable paste, right-click, drag-drop, and keyboard shortcuts
+    // Disable paste, right-click, drop, and keyboard shortcuts
     ["paste", "drop", "contextmenu"].forEach(evt => {
       inputArea.addEventListener(evt, (e) => e.preventDefault());
     });
