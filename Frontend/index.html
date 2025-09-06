@@ -304,6 +304,7 @@
 if (timeout) {
   const progress = typedText.length / targetText.length;
   if (progress >= 0.5) {
+    const timeTaken = (new Date() - startTime) / 1000 / 60;
     wpmResult = Math.round(typedText.length / 5 / timeTaken)+"Try Harder";
   } else {
     wpmResult = "Too Slow";
