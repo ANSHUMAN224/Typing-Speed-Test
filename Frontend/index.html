@@ -205,7 +205,7 @@
 
     /* Floating letters */
     const lettersDiv = document.getElementById("letters");
-    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwx";
     for (let i = 0; i < 40; i++) {
       const span = document.createElement("span");
       span.textContent = letters[Math.floor(Math.random() * letters.length)];
@@ -310,6 +310,25 @@
 
       wpmSpan.textContent = wpmResult;
       accuracySpan.textContent = accuracy + "%";
+
+        // ✅ ADD "Try Harder" check here
+  const progress = typedText.length / targetText.length;
+  if (timeout && progress <= 0.5) {
+    const msg = document.createElement("div");
+    msg.textContent = "⚡ Try Harder! ⚡";
+    msg.style.position = "fixed";
+    msg.style.top = "50%";
+    msg.style.left = "50%";
+    msg.style.transform = "translate(-50%, -50%)";
+    msg.style.fontSize = "32px";
+    msg.style.fontWeight = "bold";
+    msg.style.color = "#facc15"; // bright yellow
+    msg.style.textShadow = "0 0 12px black";
+    msg.style.zIndex = "1000";
+    document.body.appendChild(msg);
+
+    setTimeout(() => msg.remove(), 3000);
+  }
 
       if (!timeout && typedText === targetText) {
         launchSymbols("✅"); // success
