@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Typing Speed Test</title>
+  <!-- Dynamic Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap" rel="stylesheet">
   <style>
     /* 🌌 Background Animation */
     body {
@@ -28,12 +30,16 @@
     /* 🌟 Floating Letters */
     .floating-letters span {
       position: absolute;
-      font-size: 24px;
-      color: rgba(255, 255, 255, 0.07);
+      font-size: 26px;
+      font-weight: bold;
+      color: rgba(56, 189, 248, 0.3); /* brighter bluish */
       animation: float 12s linear infinite;
       user-select: none;
       pointer-events: none;
     }
+    .floating-letters span:nth-child(3n) { color: rgba(244, 114, 182, 0.3); } /* pink */
+    .floating-letters span:nth-child(4n) { color: rgba(34, 197, 94, 0.3); }  /* green */
+    .floating-letters span:nth-child(5n) { color: rgba(250, 204, 21, 0.3); } /* yellow */
     @keyframes float {
       from { transform: translateY(100vh) rotate(0deg); opacity: 0; }
       10% { opacity: 1; }
@@ -53,30 +59,52 @@
       z-index: 5;
     }
 
-    /* ⏳ Top Progress Bar (instead of timer bubble) */
+    /* ⏳ Top Progress Bar (with text inside) */
     .timer-bar {
+      position: relative;
+      width: 100%;
+      height: 28px; /* thicker bar */
+      background: #334155;
+      border-radius: 16px;
+      margin-bottom: 25px;
+      overflow: hidden;
+    }
+    .timer-fill {
       position: absolute;
-      top: 0;
-      left: 0;
-      height: 12px;
+      top: 0; left: 0;
+      height: 100%;
       width: 100%;
       background: #38bdf8;
-      border-radius: 16px 16px 0 0;
       transition: width 1s linear, background 0.3s;
     }
-    .timer-bar.warning {
+    .timer-text {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 16px;
+      color: #0f172a;
+    }
+    .warning {
       animation: pulse 1s infinite;
     }
     @keyframes pulse {
       0% { transform: scaleY(1); }
-      50% { transform: scaleY(1.2); }
+      50% { transform: scaleY(1.1); }
       100% { transform: scaleY(1); }
     }
 
     /* Title */
     h1 {
+      font-family: "Orbitron", sans-serif;
       color: #38bdf8;
-      margin: 25px 0 20px;
+      margin: 0 0 20px;
+      font-size: 32px;
+      letter-spacing: 2px;
     }
 
     /* Target Text */
@@ -143,7 +171,12 @@
 
   <!-- Main Typing Test Box -->
   <div class="container">
-    <div class="timer-bar" id="timer-bar"></div>
+    <!-- Thick Timer Bar -->
+    <div class="timer-bar">
+      <div class="timer-fill" id="timer-fill"></div>
+      <div class="timer-text" id="timer-text">60s</div>
+    </div>
+
     <h1>Typing Speed Test</h1>
     <div id="target">Press "New Text" to start...</div>
     <textarea id="input" placeholder="Start typing here..." disabled></textarea>
@@ -152,7 +185,6 @@
     <div class="stats">
       <div>WPM: <span id="wpm">0</span></div>
       <div>Accuracy: <span id="accuracy">0%</span></div>
-      <div>Time Left: <span id="timer">60</span>s</div>
     </div>
 
     <button class="btn" onclick="newTest()">New Text</button>
@@ -170,18 +202,18 @@
     const inputArea = document.getElementById("input");
     const wpmSpan = document.getElementById("wpm");
     const accuracySpan = document.getElementById("accuracy");
-    const timerSpan = document.getElementById("timer");
-    const timerBar = document.getElementById("timer-bar");
+    const timerFill = document.getElementById("timer-fill");
+    const timerText = document.getElementById("timer-text");
 
     /* 🎉 Floating letters */
     const lettersDiv = document.getElementById("letters");
     const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 40; i++) {
       const span = document.createElement("span");
       span.textContent = letters[Math.floor(Math.random() * letters.length)];
       span.style.left = Math.random() * 100 + "vw";
       span.style.animationDuration = 8 + Math.random() * 8 + "s";
-      span.style.fontSize = 16 + Math.random() * 20 + "px";
+      span.style.fontSize = 18 + Math.random() * 22 + "px";
       lettersDiv.appendChild(span);
     }
 
@@ -196,14 +228,14 @@
 
       wpmSpan.textContent = "0";
       accuracySpan.textContent = "0%";
-      timerSpan.textContent = "60";
-      timerBar.style.width = "100%";
-      timerBar.style.background = "#38bdf8";
-      timerBar.classList.remove("warning");
+      timeLeft = 60;
+      timerFill.style.width = "100%";
+      timerFill.style.background = "#38bdf8";
+      timerFill.classList.remove("warning");
+      timerText.textContent = "60s";
 
       finished = false;
       startTime = null;
-      timeLeft = 60;
 
       if (timerInterval) {
         clearInterval(timerInterval);
@@ -226,15 +258,15 @@
       if (finished) return;
       if (timeLeft > 0) {
         timeLeft--;
-        timerSpan.textContent = timeLeft;
-        timerBar.style.width = (timeLeft / 60) * 100 + "%";
+        timerText.textContent = timeLeft + "s";
+        timerFill.style.width = (timeLeft / 60) * 100 + "%";
 
         if (timeLeft <= 5) {
-          timerBar.style.background = "#ef4444";
-          timerBar.classList.add("warning");
+          timerFill.style.background = "#ef4444";
+          timerFill.classList.add("warning");
         } else if (timeLeft <= 10) {
-          timerBar.style.background = "#f59e0b";
-          timerBar.classList.add("warning");
+          timerFill.style.background = "#f59e0b";
+          timerFill.classList.add("warning");
         }
       } else {
         finishTest(true);
