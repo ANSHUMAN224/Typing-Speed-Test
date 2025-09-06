@@ -5,26 +5,55 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Typing Speed Test</title>
   <style>
+    /* 🌌 Background Animation */
     body {
       font-family: "Segoe UI", Tahoma, sans-serif;
-      background: linear-gradient(135deg, #1e293b, #0f172a);
-      color: #f1f5f9;
       margin: 0;
       height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
+      overflow: hidden;
+      background: linear-gradient(120deg, #0f172a, #1e293b, #0f172a);
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+      color: #f1f5f9;
     }
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* 🌟 Floating Letters */
+    .floating-letters span {
+      position: absolute;
+      font-size: 24px;
+      color: rgba(255, 255, 255, 0.07);
+      animation: float 12s linear infinite;
+      user-select: none;
+      pointer-events: none;
+    }
+    @keyframes float {
+      from { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+      10% { opacity: 1; }
+      to { transform: translateY(-120vh) rotate(360deg); opacity: 0; }
+    }
+
+    /* 📦 Main Container */
     .container {
       width: 95%;
       max-width: 700px;
-      background: #1e293b;
+      background: rgba(30, 41, 59, 0.9);
       padding: 30px;
       border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
       text-align: center;
       position: relative;
+      z-index: 5;
     }
+
+    /* ⏳ Timer */
     .timer-badge {
       position: absolute;
       top: 15px;
@@ -38,10 +67,22 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
       transition: background 0.3s;
     }
+    .timer-badge.warning {
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+
+    /* Title */
     h1 {
       color: #38bdf8;
       margin-bottom: 20px;
     }
+
+    /* Target Text */
     #target {
       font-size: 20px;
       line-height: 1.5;
@@ -50,10 +91,12 @@
       text-align: left;
       white-space: pre-wrap;
     }
+
+    /* Input Box */
     #input {
       width: 100%;
-      height: 80px; /* fixed height */
-      resize: none; /* prevent resizing */
+      height: 80px;
+      resize: none;
       padding: 12px;
       border-radius: 8px;
       border: none;
@@ -61,13 +104,36 @@
       outline: none;
       margin-bottom: 20px;
       box-sizing: border-box;
+      transition: box-shadow 0.3s ease;
     }
+    #input:focus {
+      box-shadow: 0 0 20px #38bdf8;
+    }
+
+    /* Stats */
     .stats {
       display: flex;
       justify-content: space-around;
       font-size: 18px;
       margin-top: 15px;
     }
+
+    /* Progress Bar */
+    .progress-container {
+      height: 8px;
+      background: #334155;
+      border-radius: 4px;
+      margin-top: 15px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background: #38bdf8;
+      width: 100%;
+      transition: width 1s linear;
+    }
+
+    /* Button */
     .btn {
       display: inline-block;
       padding: 10px 16px;
@@ -83,24 +149,32 @@
     .btn:hover {
       background: #0ea5e9;
     }
-    .correct {
-      color: #22c55e; /* green */
-    }
-    .incorrect {
-      color: #ef4444; /* red */
-    }
+
+    /* Correct / Incorrect Highlights */
+    .correct { color: #22c55e; }
+    .incorrect { color: #ef4444; }
   </style>
 </head>
 <body>
+  <!-- Floating letters for atmosphere -->
+  <div class="floating-letters" id="letters"></div>
+
+  <!-- Main Typing Test Box -->
   <div class="container">
     <div class="timer-badge"><span id="timer">60</span>s</div>
     <h1>Typing Speed Test</h1>
     <div id="target">Press "New Text" to start...</div>
     <textarea id="input" placeholder="Start typing here..." disabled></textarea>
 
+    <!-- Stats -->
     <div class="stats">
       <div>WPM: <span id="wpm">0</span></div>
       <div>Accuracy: <span id="accuracy">0%</span></div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-container">
+      <div class="progress-bar" id="progress"></div>
     </div>
 
     <button class="btn" onclick="newTest()">New Text</button>
@@ -120,6 +194,19 @@
     const accuracySpan = document.getElementById("accuracy");
     const timerSpan = document.getElementById("timer");
     const timerBadge = document.querySelector(".timer-badge");
+    const progressBar = document.getElementById("progress");
+
+    /* 🎉 Floating letters */
+    const lettersDiv = document.getElementById("letters");
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    for (let i = 0; i < 30; i++) {
+      const span = document.createElement("span");
+      span.textContent = letters[Math.floor(Math.random() * letters.length)];
+      span.style.left = Math.random() * 100 + "vw";
+      span.style.animationDuration = 8 + Math.random() * 8 + "s";
+      span.style.fontSize = 16 + Math.random() * 20 + "px";
+      lettersDiv.appendChild(span);
+    }
 
     async function newTest() {
       const res = await fetch(`${BACKEND_URL}/text`);
@@ -131,8 +218,9 @@
       inputArea.focus();
 
       wpmSpan.textContent = "0";
-      accuracySpan.textContent = "0%"; // stays 0 until finished
+      accuracySpan.textContent = "0%";
       timerSpan.textContent = "60";
+      progressBar.style.width = "100%";
 
       finished = false;
       startTime = null;
@@ -143,8 +231,8 @@
         timerInterval = null;
       }
 
-      // reset timer badge color
       timerBadge.style.background = "#38bdf8";
+      timerBadge.classList.remove("warning");
     }
 
     function renderTargetText(userText) {
@@ -163,12 +251,14 @@
       if (timeLeft > 0) {
         timeLeft--;
         timerSpan.textContent = timeLeft;
+        progressBar.style.width = (timeLeft / 60) * 100 + "%";
 
-        // warning colors
         if (timeLeft <= 5) {
-          timerBadge.style.background = "#ef4444"; // red
+          timerBadge.style.background = "#ef4444";
+          timerBadge.classList.add("warning");
         } else if (timeLeft <= 10) {
-          timerBadge.style.background = "#f59e0b"; // orange
+          timerBadge.style.background = "#f59e0b";
+          timerBadge.classList.add("warning");
         }
       } else {
         finishTest(true);
@@ -178,7 +268,6 @@
     inputArea.addEventListener("input", () => {
       if (!startTime) {
         startTime = new Date();
-        // start timer only when typing begins
         timerInterval = setInterval(updateTimer, 1000);
       }
       if (finished) return;
@@ -209,14 +298,40 @@
       if (timeout) {
         wpmResult = "Too Slow";
       } else {
-        const timeTaken = (new Date() - startTime) / 1000 / 60; // minutes
+        const timeTaken = (new Date() - startTime) / 1000 / 60;
         wpmResult = Math.round(typedText.length / 5 / timeTaken);
       }
 
       wpmSpan.textContent = wpmResult;
       accuracySpan.textContent = accuracy + "%";
+
+      // 🎊 Confetti effect if accuracy is high
+      if (accuracy >= 90) {
+        launchConfetti();
+      }
     }
+
+    /* 🎊 Simple Confetti */
+    function launchConfetti() {
+      for (let i = 0; i < 30; i++) {
+        const conf = document.createElement("div");
+        conf.textContent = "🎉";
+        conf.style.position = "fixed";
+        conf.style.left = Math.random() * 100 + "vw";
+        conf.style.top = "-5vh";
+        conf.style.fontSize = "24px";
+        conf.style.animation = `drop ${2 + Math.random() * 3}s linear`;
+        document.body.appendChild(conf);
+        setTimeout(() => conf.remove(), 4000);
+      }
+    }
+    const style = document.createElement("style");
+    style.textContent = `
+      @keyframes drop {
+        to { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
   </script>
 </body>
 </html>
-
