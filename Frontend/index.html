@@ -60,7 +60,7 @@
       left: 50%;
       transform: translateX(-50%);
       opacity: 0;
-      transition: opacity 0.3s;
+      transition: opacity 0.3s, transform 0.3s;
       font-size: 14px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.4);
       z-index: 1;
@@ -68,6 +68,7 @@
     .info-btn:hover .tooltip {
       visibility: visible;
       opacity: 1;
+      transform: translateX(-50%) translateY(-4px);
     }
 
     .progress-bar {
@@ -248,9 +249,14 @@
       }
     });
 
-    // Disable paste, right-click, and drop
+    // Disable paste, right-click, drag-drop, and keyboard shortcuts
     ["paste", "drop", "contextmenu"].forEach(evt => {
       inputArea.addEventListener(evt, (e) => e.preventDefault());
+    });
+    inputArea.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && (e.key === "v" || e.key === "V")) {
+        e.preventDefault();
+      }
     });
 
     function finishTest(timeout) {
