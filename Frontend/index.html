@@ -221,7 +221,7 @@
     function createFloatingLetter() {
       const letter = document.createElement("div");
       letter.classList.add("floating");
-      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz,.";
       letter.textContent = chars[Math.floor(Math.random() * chars.length)];
 
       // Random horizontal position
