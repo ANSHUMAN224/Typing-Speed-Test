@@ -53,33 +53,30 @@
       z-index: 5;
     }
 
-    /* ⏳ Timer */
-    .timer-badge {
+    /* ⏳ Top Progress Bar (instead of timer bubble) */
+    .timer-bar {
       position: absolute;
-      top: 15px;
-      right: 15px;
+      top: 0;
+      left: 0;
+      height: 12px;
+      width: 100%;
       background: #38bdf8;
-      color: #0f172a;
-      font-weight: bold;
-      padding: 6px 12px;
-      border-radius: 50px;
-      font-size: 16px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-      transition: background 0.3s;
+      border-radius: 16px 16px 0 0;
+      transition: width 1s linear, background 0.3s;
     }
-    .timer-badge.warning {
+    .timer-bar.warning {
       animation: pulse 1s infinite;
     }
     @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.1); }
-      100% { transform: scale(1); }
+      0% { transform: scaleY(1); }
+      50% { transform: scaleY(1.2); }
+      100% { transform: scaleY(1); }
     }
 
     /* Title */
     h1 {
       color: #38bdf8;
-      margin-bottom: 20px;
+      margin: 25px 0 20px;
     }
 
     /* Target Text */
@@ -118,21 +115,6 @@
       margin-top: 15px;
     }
 
-    /* Progress Bar */
-    .progress-container {
-      height: 8px;
-      background: #334155;
-      border-radius: 4px;
-      margin-top: 15px;
-      overflow: hidden;
-    }
-    .progress-bar {
-      height: 100%;
-      background: #38bdf8;
-      width: 100%;
-      transition: width 1s linear;
-    }
-
     /* Button */
     .btn {
       display: inline-block;
@@ -161,7 +143,7 @@
 
   <!-- Main Typing Test Box -->
   <div class="container">
-    <div class="timer-badge"><span id="timer">60</span>s</div>
+    <div class="timer-bar" id="timer-bar"></div>
     <h1>Typing Speed Test</h1>
     <div id="target">Press "New Text" to start...</div>
     <textarea id="input" placeholder="Start typing here..." disabled></textarea>
@@ -170,11 +152,7 @@
     <div class="stats">
       <div>WPM: <span id="wpm">0</span></div>
       <div>Accuracy: <span id="accuracy">0%</span></div>
-    </div>
-
-    <!-- Progress Bar -->
-    <div class="progress-container">
-      <div class="progress-bar" id="progress"></div>
+      <div>Time Left: <span id="timer">60</span>s</div>
     </div>
 
     <button class="btn" onclick="newTest()">New Text</button>
@@ -193,8 +171,7 @@
     const wpmSpan = document.getElementById("wpm");
     const accuracySpan = document.getElementById("accuracy");
     const timerSpan = document.getElementById("timer");
-    const timerBadge = document.querySelector(".timer-badge");
-    const progressBar = document.getElementById("progress");
+    const timerBar = document.getElementById("timer-bar");
 
     /* 🎉 Floating letters */
     const lettersDiv = document.getElementById("letters");
@@ -220,7 +197,9 @@
       wpmSpan.textContent = "0";
       accuracySpan.textContent = "0%";
       timerSpan.textContent = "60";
-      progressBar.style.width = "100%";
+      timerBar.style.width = "100%";
+      timerBar.style.background = "#38bdf8";
+      timerBar.classList.remove("warning");
 
       finished = false;
       startTime = null;
@@ -230,9 +209,6 @@
         clearInterval(timerInterval);
         timerInterval = null;
       }
-
-      timerBadge.style.background = "#38bdf8";
-      timerBadge.classList.remove("warning");
     }
 
     function renderTargetText(userText) {
@@ -251,14 +227,14 @@
       if (timeLeft > 0) {
         timeLeft--;
         timerSpan.textContent = timeLeft;
-        progressBar.style.width = (timeLeft / 60) * 100 + "%";
+        timerBar.style.width = (timeLeft / 60) * 100 + "%";
 
         if (timeLeft <= 5) {
-          timerBadge.style.background = "#ef4444";
-          timerBadge.classList.add("warning");
+          timerBar.style.background = "#ef4444";
+          timerBar.classList.add("warning");
         } else if (timeLeft <= 10) {
-          timerBadge.style.background = "#f59e0b";
-          timerBadge.classList.add("warning");
+          timerBar.style.background = "#f59e0b";
+          timerBar.classList.add("warning");
         }
       } else {
         finishTest(true);
@@ -305,7 +281,6 @@
       wpmSpan.textContent = wpmResult;
       accuracySpan.textContent = accuracy + "%";
 
-      // 🎊 Confetti effect if accuracy is high
       if (accuracy >= 90) {
         launchConfetti();
       }
