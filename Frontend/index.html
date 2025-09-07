@@ -17,6 +17,7 @@
       align-items: center;
       justify-content: center;
       overflow: hidden;
+      position: relative;
     }
     .container {
       width: 95%;
@@ -39,7 +40,6 @@
       gap: 8px;
     }
 
-    /* Styled info button */
     .info-btn {
       position: relative;
       width: 22px;
@@ -167,20 +167,18 @@
       100% { transform: translateY(-120vh) rotate(360deg); opacity: 0; }
     }
 
-    /* Falling result icons ✅ ❌ */
-    .floating-result {
+    /* Falling ✔️ and ❌ */
+    .falling-symbol {
       position: absolute;
-      font-size: 60px;
-      font-weight: bold;
-      animation: fallResult 3s ease-in forwards;
-      z-index: 5;
-      text-shadow: 0 0 12px rgba(255,255,255,0.8);
+      top: -40px;
+      font-size: 28px;
       opacity: 0.9;
+      animation: fallDown linear forwards;
+      z-index: 0; /* stay in background */
     }
-    @keyframes fallResult {
-      0% { transform: translateY(0) scale(1); opacity: 1; }
-      60% { transform: translateY(120px) scale(1.2); opacity: 0.9; }
-      100% { transform: translateY(220px) scale(1); opacity: 0; }
+    @keyframes fallDown {
+      0% { transform: translateY(0); opacity: 0.9; }
+      100% { transform: translateY(120vh); opacity: 0; }
     }
   </style>
 </head>
@@ -227,11 +225,10 @@
     function createFloatingLetter() {
       const letter = document.createElement("div");
       letter.classList.add("floating");
-      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz,.";
       letter.textContent = chars[Math.floor(Math.random() * chars.length)];
       letter.style.left = Math.random() * 100 + "vw";
-      const size = 16 + Math.random() * 32;
-      letter.style.fontSize = size + "px";
+      letter.style.fontSize = (16 + Math.random() * 32) + "px";
       const colors = ["#38bdf8", "#22c55e", "#facc15", "#ef4444", "#a855f7", "#fb923c"];
       letter.style.color = colors[Math.floor(Math.random() * colors.length)];
       letter.style.animationDuration = (4 + Math.random() * 6) + "s";
@@ -309,7 +306,7 @@
       }
     });
 
-    // Disable paste, drop, right-click, and shortcuts
+    // Disable paste, right-click, drop, shortcuts
     ["paste", "drop", "contextmenu"].forEach(evt => {
       inputArea.addEventListener(evt, (e) => e.preventDefault());
     });
@@ -319,21 +316,17 @@
       }
     });
 
-    // Floating ✅ or ❌, falling with more icons
-    function showFloatingResult(symbol, color) {
-      const count = 6;
-      for (let i = 0; i < count; i++) {
-        const result = document.createElement("div");
-        result.classList.add("floating-result");
-        result.textContent = symbol;
-        result.style.left = (40 + Math.random() * 20) + "%";
-        result.style.top = "40%";
-        const size = 40 + Math.random() * 40;
-        result.style.fontSize = size + "px";
-        result.style.color = color;
-        result.style.transform = `translateX(${(Math.random() - 0.5) * 100}px)`;
-        document.body.appendChild(result);
-        setTimeout(() => result.remove(), 3000);
+    // Falling ✔️ or ❌ rain
+    function triggerSymbolRain(symbol, color) {
+      for (let i = 0; i < 20; i++) {
+        const el = document.createElement("div");
+        el.classList.add("falling-symbol");
+        el.textContent = symbol;
+        el.style.color = color;
+        el.style.left = Math.random() * 100 + "vw";
+        el.style.animationDuration = (3 + Math.random() * 2) + "s";
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 6000);
       }
     }
 
@@ -343,28 +336,22 @@
       inputArea.disabled = true;
 
       const typedText = inputArea.value;
-      const correctChars = typedText
-        .split("")
-        .filter((ch, i) => ch === targetText[i]).length;
-      const accuracy =
-        typedText.length > 0
-          ? Math.round((correctChars / typedText.length) * 100)
-          : 0;
+      const correctChars = typedText.split("").filter((ch, i) => ch === targetText[i]).length;
+      const accuracy = typedText.length > 0 ? Math.round((correctChars / typedText.length) * 100) : 0;
 
       let wpmResult = 0;
       
       if (typedText.length >= targetText.length) {
-        const timeTaken = (new Date() - startTime) / 1000 / 60;
+        const timeTaken = (new Date() - startTime) / 1000 / 60; 
         wpmResult = Math.round(typedText.length / 5 / timeTaken);
-        showFloatingResult("✅", "#22c55e");
+        triggerSymbolRain("✔️", "#22c55e");
       } else if (timeout) {
         if (typedText.length >= targetText.length / 2) {
           wpmResult = "Try Harder";
-          showFloatingResult("❌", "#f59e0b");
         } else {
           wpmResult = "Too Slow";
-          showFloatingResult("❌", "#ef4444");
         }
+        triggerSymbolRain("❌", "#ef4444");
       }
 
       wpmSpan.textContent = wpmResult;
