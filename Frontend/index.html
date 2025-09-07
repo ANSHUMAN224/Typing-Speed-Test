@@ -167,16 +167,20 @@
       100% { transform: translateY(-120vh) rotate(360deg); opacity: 0; }
     }
 
-    /* Floating result icon */
+    /* Falling result icons ✅ ❌ */
     .floating-result {
       position: absolute;
-      font-size: 50px;
-      animation: floatResult 3s ease-out forwards;
-      z-index: 3;
+      font-size: 60px;
+      font-weight: bold;
+      animation: fallResult 3s ease-in forwards;
+      z-index: 5;
+      text-shadow: 0 0 12px rgba(255,255,255,0.8);
+      opacity: 0.9;
     }
-    @keyframes floatResult {
-      0% { transform: translateY(0) scale(0.5); opacity: 1; }
-      100% { transform: translateY(-150px) scale(1.5); opacity: 0; }
+    @keyframes fallResult {
+      0% { transform: translateY(0) scale(1); opacity: 1; }
+      60% { transform: translateY(120px) scale(1.2); opacity: 0.9; }
+      100% { transform: translateY(220px) scale(1); opacity: 0; }
     }
   </style>
 </head>
@@ -223,23 +227,14 @@
     function createFloatingLetter() {
       const letter = document.createElement("div");
       letter.classList.add("floating");
-      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz,.";
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
       letter.textContent = chars[Math.floor(Math.random() * chars.length)];
-
-      // Random horizontal position
       letter.style.left = Math.random() * 100 + "vw";
-
-      // Random size
       const size = 16 + Math.random() * 32;
       letter.style.fontSize = size + "px";
-
-      // Random color
       const colors = ["#38bdf8", "#22c55e", "#facc15", "#ef4444", "#a855f7", "#fb923c"];
       letter.style.color = colors[Math.floor(Math.random() * colors.length)];
-
-      // Random animation duration
       letter.style.animationDuration = (4 + Math.random() * 6) + "s";
-
       document.body.appendChild(letter);
       setTimeout(() => letter.remove(), 12000);
     }
@@ -314,7 +309,7 @@
       }
     });
 
-    // Disable paste, right-click, drop, and keyboard shortcuts
+    // Disable paste, drop, right-click, and shortcuts
     ["paste", "drop", "contextmenu"].forEach(evt => {
       inputArea.addEventListener(evt, (e) => e.preventDefault());
     });
@@ -324,17 +319,22 @@
       }
     });
 
-    // Floating ✅ or ❌
+    // Floating ✅ or ❌, falling with more icons
     function showFloatingResult(symbol, color) {
-      const result = document.createElement("div");
-      result.classList.add("floating-result");
-      result.textContent = symbol;
-      result.style.left = "50%";
-      result.style.top = "50%";
-      result.style.color = color;
-      result.style.transform = "translate(-50%, -50%)";
-      document.body.appendChild(result);
-      setTimeout(() => result.remove(), 3000);
+      const count = 6;
+      for (let i = 0; i < count; i++) {
+        const result = document.createElement("div");
+        result.classList.add("floating-result");
+        result.textContent = symbol;
+        result.style.left = (40 + Math.random() * 20) + "%";
+        result.style.top = "40%";
+        const size = 40 + Math.random() * 40;
+        result.style.fontSize = size + "px";
+        result.style.color = color;
+        result.style.transform = `translateX(${(Math.random() - 0.5) * 100}px)`;
+        document.body.appendChild(result);
+        setTimeout(() => result.remove(), 3000);
+      }
     }
 
     function finishTest(timeout) {
@@ -354,17 +354,18 @@
       let wpmResult = 0;
       
       if (typedText.length >= targetText.length) {
-        // ✅ Calculate WPM even if extra characters are typed
-        const timeTaken = (new Date() - startTime) / 1000 / 60; // minutes
+        const timeTaken = (new Date() - startTime) / 1000 / 60;
         wpmResult = Math.round(typedText.length / 5 / timeTaken);
-     } else if (timeout) {
-        // ⏳ Timer runs out and text is incomplete
-         if (typedText.length >= targetText.length / 2) {
-             wpmResult = "Try Harder";
-       } else {
-             wpmResult = "Too Slow";
-              }
-       }
+        showFloatingResult("✅", "#22c55e");
+      } else if (timeout) {
+        if (typedText.length >= targetText.length / 2) {
+          wpmResult = "Try Harder";
+          showFloatingResult("❌", "#f59e0b");
+        } else {
+          wpmResult = "Too Slow";
+          showFloatingResult("❌", "#ef4444");
+        }
+      }
 
       wpmSpan.textContent = wpmResult;
       accuracySpan.textContent = accuracy + "%";
