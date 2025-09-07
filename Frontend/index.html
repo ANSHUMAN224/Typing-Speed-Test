@@ -167,18 +167,17 @@
       100% { transform: translateY(-120vh) rotate(360deg); opacity: 0; }
     }
 
-    /* Falling ✓ and ✗ */
+    /* Falling ticks/crosses */
     .falling-symbol {
       position: absolute;
-      top: -40px;
+      top: -50px;
       font-size: 28px;
-      opacity: 0.9;
+      opacity: 0.8;
       animation: fallDown linear forwards;
       z-index: 0;
-      text-shadow: 0 0 6px rgba(0,0,0,0.5);
     }
     @keyframes fallDown {
-      0% { transform: translateY(0); opacity: 0.9; }
+      0% { transform: translateY(0); opacity: 0.8; }
       100% { transform: translateY(120vh); opacity: 0; }
     }
   </style>
@@ -197,7 +196,15 @@
     </div>
 
     <div id="target">Press "New Text" to start...</div>
-    <textarea id="input" placeholder="Start typing here..." disabled></textarea>
+    <textarea 
+      id="input" 
+      placeholder="Start typing here..." 
+      disabled
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="off"
+      spellcheck="false"
+      inputmode="none"></textarea>
 
     <div class="stats">
       <div>WPM: <span id="wpm">0</span></div>
@@ -222,14 +229,15 @@
     const timerSpan = document.getElementById("timer");
     const progressFill = document.querySelector(".progress-fill");
 
-    // Floating letters
+    // Floating background letters
     function createFloatingLetter() {
       const letter = document.createElement("div");
       letter.classList.add("floating");
       const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz,.";
       letter.textContent = chars[Math.floor(Math.random() * chars.length)];
       letter.style.left = Math.random() * 100 + "vw";
-      letter.style.fontSize = (16 + Math.random() * 32) + "px";
+      const size = 16 + Math.random() * 32;
+      letter.style.fontSize = size + "px";
       const colors = ["#38bdf8", "#22c55e", "#facc15", "#ef4444", "#a855f7", "#fb923c"];
       letter.style.color = colors[Math.floor(Math.random() * colors.length)];
       letter.style.animationDuration = (4 + Math.random() * 6) + "s";
@@ -241,25 +249,17 @@
     async function newTest() {
       const res = await fetch(`${BACKEND_URL}/text`);
       targetText = await res.text();
-
       renderTargetText("");
       inputArea.value = "";
       inputArea.disabled = false;
       inputArea.focus();
-
       wpmSpan.textContent = "0";
       accuracySpan.textContent = "0%";
       timerSpan.textContent = "60";
-
       finished = false;
       startTime = null;
       timeLeft = 60;
-
-      if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-      }
-
+      if (timerInterval) clearInterval(timerInterval);
       progressFill.style.width = "100%";
       progressFill.style.background = "#38bdf8";
     }
@@ -281,12 +281,8 @@
         timeLeft--;
         timerSpan.textContent = timeLeft;
         progressFill.style.width = (timeLeft / 60) * 100 + "%";
-
-        if (timeLeft <= 5) {
-          progressFill.style.background = "#ef4444";
-        } else if (timeLeft <= 10) {
-          progressFill.style.background = "#f59e0b";
-        }
+        if (timeLeft <= 5) progressFill.style.background = "#ef4444";
+        else if (timeLeft <= 10) progressFill.style.background = "#f59e0b";
       } else {
         finishTest(true);
       }
@@ -298,38 +294,36 @@
         timerInterval = setInterval(updateTimer, 1000);
       }
       if (finished) return;
-
       const currentText = inputArea.value;
       renderTargetText(currentText);
-
-      if (currentText === targetText) {
-        finishTest(false);
-      }
+      if (currentText === targetText) finishTest(false);
     });
 
-    // 🚫 Disable paste everywhere
+    // Disable pasting globally (desktop + mobile)
     ["paste", "drop", "contextmenu"].forEach(evt => {
       inputArea.addEventListener(evt, e => e.preventDefault());
     });
     inputArea.addEventListener("keydown", e => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
-        e.preventDefault();
-      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") e.preventDefault();
     });
-    inputArea.addEventListener("beforeinput", e => {
-      if (e.inputType.startsWith("insertFromPaste") || e.inputType === "insertFromDrop") {
-        e.preventDefault();
-      }
-    });
-    // Extra global safeguard
     document.addEventListener("paste", e => {
       e.preventDefault();
       if (document.activeElement === inputArea) {
-        inputArea.value = inputArea.value; // ignore paste
+        inputArea.value = inputArea.value;
       }
     });
 
-    // Falling ✓ or ✗ rain
+    // MutationObserver safeguard for sneaky paste
+    let lastLength = 0;
+    const observer = new MutationObserver(() => {
+      if (inputArea.value.length - lastLength > 1) {
+        inputArea.value = inputArea.value.substring(0, lastLength);
+      }
+      lastLength = inputArea.value.length;
+    });
+    observer.observe(inputArea, { characterData: true, childList: true, subtree: true });
+
+    // Falling ticks/crosses
     function triggerSymbolRain(symbol, color) {
       for (let i = 0; i < 30; i++) {
         const el = document.createElement("div");
@@ -348,26 +342,25 @@
       finished = true;
       clearInterval(timerInterval);
       inputArea.disabled = true;
-
       const typedText = inputArea.value;
       const correctChars = typedText.split("").filter((ch, i) => ch === targetText[i]).length;
-      const accuracy = typedText.length > 0 ? Math.round((correctChars / typedText.length) * 100) : 0;
-
+      const accuracy = typedText.length > 0
+        ? Math.round((correctChars / typedText.length) * 100)
+        : 0;
       let wpmResult = 0;
-      
       if (typedText.length >= targetText.length) {
-        const timeTaken = (new Date() - startTime) / 1000 / 60; 
+        const timeTaken = (new Date() - startTime) / 1000 / 60;
         wpmResult = Math.round(typedText.length / 5 / timeTaken);
-        triggerSymbolRain("✓", "#22c55e"); // ✅ green tick
+        triggerSymbolRain("✓", "#22c55e"); // green tick rain
       } else if (timeout) {
         if (typedText.length >= targetText.length / 2) {
           wpmResult = "Try Harder";
+          triggerSymbolRain("✗", "#ef4444");
         } else {
           wpmResult = "Too Slow";
+          triggerSymbolRain("✗", "#ef4444");
         }
-        triggerSymbolRain("✗", "#ef4444"); // ❌ red cross
       }
-
       wpmSpan.textContent = wpmResult;
       accuracySpan.textContent = accuracy + "%";
     }
