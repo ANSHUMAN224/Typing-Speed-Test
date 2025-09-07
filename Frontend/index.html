@@ -352,20 +352,19 @@
           : 0;
 
       let wpmResult = 0;
-      if (timeout) {
-        const progress = typedText.length / targetText.length;
-        if (progress >= 0.5) {
-          wpmResult = "Try Harder ❗";
-          showFloatingResult("❌", "#ef4444");
-        } else {
-          wpmResult = "Too Slow ❌";
-          showFloatingResult("❌", "#ef4444");
-        }
-      } else {
-        const timeTaken = (new Date() - startTime) / 1000 / 60;
-        wpmResult = Math.round(typedText.length / 5 / timeTaken) + " ✅";
-        showFloatingResult("✅", "#22c55e");
-      }
+      
+      if (typedText.length >= targetText.length) {
+        // ✅ Calculate WPM even if extra characters are typed
+        const timeTaken = (new Date() - startTime) / 1000 / 60; // minutes
+        wpmResult = Math.round(typedText.length / 5 / timeTaken);
+     } else if (timeout) {
+        // ⏳ Timer runs out and text is incomplete
+         if (typedText.length >= targetText.length / 2) {
+             wpmResult = "Try Harder";
+       } else {
+             wpmResult = "Too Slow";
+              }
+       }
 
       wpmSpan.textContent = wpmResult;
       accuracySpan.textContent = accuracy + "%";
