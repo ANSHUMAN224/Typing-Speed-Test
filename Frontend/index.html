@@ -167,14 +167,14 @@
       100% { transform: translateY(-120vh) rotate(360deg); opacity: 0; }
     }
 
-    /* Falling ✔️ and ❌ */
+    /* Falling ✓ and ✗ */
     .falling-symbol {
       position: absolute;
       top: -40px;
       font-size: 28px;
       opacity: 0.9;
       animation: fallDown linear forwards;
-      z-index: 0; /* stay in background */
+      z-index: 0;
       text-shadow: 0 0 6px rgba(0,0,0,0.5);
     }
     @keyframes fallDown {
@@ -307,7 +307,7 @@
       }
     });
 
-    // 🚫 Disable paste/clipboard on ALL devices
+    // 🚫 Disable paste everywhere
     ["paste", "drop", "contextmenu"].forEach(evt => {
       inputArea.addEventListener(evt, e => e.preventDefault());
     });
@@ -321,14 +321,23 @@
         e.preventDefault();
       }
     });
+    // Extra global safeguard
+    document.addEventListener("paste", e => {
+      e.preventDefault();
+      if (document.activeElement === inputArea) {
+        inputArea.value = inputArea.value; // ignore paste
+      }
+    });
 
-    // Falling ✔️ or ❌ rain
+    // Falling ✓ or ✗ rain
     function triggerSymbolRain(symbol, color) {
-      for (let i = 0; i < 25; i++) {
+      for (let i = 0; i < 30; i++) {
         const el = document.createElement("div");
         el.classList.add("falling-symbol");
-        el.innerHTML = `<span style="color:${color}">${symbol}</span>`;
+        el.textContent = symbol;
+        el.style.color = color;
         el.style.left = Math.random() * 100 + "vw";
+        el.style.fontSize = "28px";
         el.style.animationDuration = (3 + Math.random() * 2) + "s";
         document.body.appendChild(el);
         setTimeout(() => el.remove(), 6000);
@@ -349,14 +358,14 @@
       if (typedText.length >= targetText.length) {
         const timeTaken = (new Date() - startTime) / 1000 / 60; 
         wpmResult = Math.round(typedText.length / 5 / timeTaken);
-        triggerSymbolRain("✔️", "#22c55e"); // ✅ bright green tick
+        triggerSymbolRain("✓", "#22c55e"); // ✅ green tick
       } else if (timeout) {
         if (typedText.length >= targetText.length / 2) {
           wpmResult = "Try Harder";
         } else {
           wpmResult = "Too Slow";
         }
-        triggerSymbolRain("❌", "#ef4444"); // ❌ red cross
+        triggerSymbolRain("✗", "#ef4444"); // ❌ red cross
       }
 
       wpmSpan.textContent = wpmResult;
